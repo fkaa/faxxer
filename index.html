@@ -1,0 +1,82 @@
+<!doctype html>
+<title>rut</title>
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="icon" href="/favicon.ico" />
+<style>
+    body,
+    html {
+        margin: 0;
+        padding: 0;
+        font-family: monospace;
+    }
+
+    #editorjs {
+        padding: 1em;
+    }
+
+    .print {
+        font-size: 2em;
+        position: fixed;
+        top: 1em;
+        margin: auto;
+        right: 1em;
+        z-index: 100000;
+    }
+
+    .layout {
+        display: flex;
+        flex-direction: column;
+    }
+</style>
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8" />
+<script type="module" src="editorjs.mjs"></script>
+
+<body>
+    <div id="editorjs"></div>
+    <button id="printButton" class="print">Print</button>
+</body>
+
+<script type="module">
+    import EditorJS from './editorjs.mjs';
+    import Header from './header.mjs';
+
+    console.log(EditorJS);
+
+    const editor = new EditorJS({
+        holder: 'editorjs',
+        tools: {
+            header: Header,
+        },
+        autofocus: true,
+        placeholder: 'Write something'
+    });
+    const btn = document.getElementById("printButton");
+
+    console.log(btn);
+
+    btn.onclick = async () => {
+        let output = await editor.save();
+        console.log(JSON.stringify(output));
+        await api("/api/print", output);
+    };
+
+    function api(url, data) {
+        return fetch(url, {
+            method: "post",
+            headers: {
+                "Content-type": "application/json",
+            },
+            body: JSON.stringify(data),
+        }).then((response) => {
+            if (!response.ok) {
+                return null;
+            }
+
+            return response.json();
+        });
+    }
+</script>
+
+<!-- vi: set sw=4 ts=4: -->
