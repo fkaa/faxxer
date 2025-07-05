@@ -201,28 +201,32 @@ fn discord_auth_api(req: &mut Request, printer: &mut Printer<UsbDriver>, app: &A
 
     // add user to DB
 
-    let secret: String = rand::rng()
-        .sample_iter(&Alphanumeric)
-        .take(32)
-        .map(char::from)
-        .collect();
+    let user = app.db.get_user(discord_user.id.get());
 
-    let user = User {
-        user_id: discord_user.id.get(),
-        username: discord_user.name.clone(),
-        prints_left: 10,
-        authorize_secret: Some(secret.clone()),
-    };
-    app.db.update_user(user);
+    if user.is_none() {
+        let secret: String = rand::rng()
+            .sample_iter(&Alphanumeric)
+            .take(32)
+            .map(char::from)
+            .collect();
 
-    let authorize_url = format!("https://fax.fnk.ee/api/acceptRequest?code={}", secret);
+        let user = User {
+            user_id: discord_user.id.get(),
+            username: discord_user.name.clone(),
+            prints_left: 5,
+            authorize_secret: Some(secret.clone()),
+        };
+        app.db.update_user(user);
 
-    debug!(
-        "User {} wants to auth. Go to {} to accept",
-        discord_user.name, authorize_url
-    );
-    if let Err(e) = send_auth_request_print_qr(&discord_user, authorize_url, printer) {
-        log::error!("Failed to print receipt for authorize: {e:?}");
+        let authorize_url = format!("https://fax.fnk.ee/api/acceptRequest?code={}", secret);
+
+        debug!(
+            "User {} wants to auth. Go to {} to accept",
+            discord_user.name, authorize_url
+        );
+        if let Err(e) = send_auth_request_print_qr(&discord_user, authorize_url, printer) {
+            log::error!("Failed to print receipt for authorize: {e:?}");
+        }
     }
 
     let jwt = FaxJwt {
