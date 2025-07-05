@@ -1,5 +1,5 @@
 <!doctype html>
-<title>rut</title>
+<title>Fax</title>
 <link rel="shortcut icon" href="/favicon.ico" />
 <link rel="icon" href="/favicon.ico" />
 <style>
@@ -16,50 +16,135 @@
 
     .print {
         font-size: 2em;
-        position: fixed;
         top: 1em;
         margin: auto;
         right: 1em;
         z-index: 100000;
+        text-align: center;
+        margin: auto;
+        margin-top: auto;
+        left: 0;
+        right: 0;
+        display: block;
+        margin-top: 1em;
     }
 
     .layout {
         display: flex;
         flex-direction: column;
     }
+
+    #pell-editor {
+        word-break: break-all;
+        max-width: 13em;
+        margin: auto;
+        zoom: 2;
+        margin-top: 1em;
+    }
+
+    .pell-actionbar {
+        text-align: center;
+        margin-bottom: 1em;
+    }
+
+    .pell-content {
+        background: url(receipt.jpg) bottom;
+        background-position: -35px -358px;
+        background-size: 15em;
+        background-repeat: repeat;
+        padding: 1em;
+        box-shadow: 0px 0px 5px 2px rgba(23, 5, 5, 0.12);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p {
+        padding: 0;
+        margin: 0;
+    }
 </style>
 
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta charset="utf-8" />
-<script type="module" src="editorjs.mjs"></script>
+<script src="pell.js"></script>
 
 <body>
-    <div id="editorjs"></div>
+
+    <div id="pell-editor" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
     <button id="printButton" class="print">Print</button>
 </body>
 
 <script type="module">
-    import EditorJS from './editorjs.mjs';
-    import Header from './header.mjs';
-
-    console.log(EditorJS);
-
-    const editor = new EditorJS({
+    /*const editor = new EditorJS({
         holder: 'editorjs',
         tools: {
             header: Header,
         },
         autofocus: true,
         placeholder: 'Write something'
-    });
+    });*/
+
+    let output = "";
+
+    pell.init({
+        // <HTMLElement>, required
+        element: document.getElementById('pell-editor'),
+
+        // <Function>, required
+        // Use the output html, triggered by element's `oninput` event
+        onChange: html => {
+            console.log(html);
+            output = html;
+        },
+
+        // <string>, optional, default = 'div'
+        // Instructs the editor which element to inject via the return key
+        defaultParagraphSeparator: 'div',
+
+        // <boolean>, optional, default = false
+        // Outputs <span style="font-weight: bold;"></span> instead of <b></b>
+        styleWithCSS: false,
+
+        // <Array[string | Object]>, string if overwriting, object if customizing/creating
+        // action.name<string> (only required if overwriting)
+        // action.icon<string> (optional if overwriting, required if custom action)
+        // action.title<string> (optional)
+        // action.result<Function> (required)
+        // Specify the actions you specifically want (in order)
+        actions: [
+            //'bold',
+            //'italic',
+            //'underline',
+            //'strikethrough',
+
+            'paragraph',
+            'heading1',
+            'heading2',
+            'line',
+        ],
+
+        // classes<Array[string]> (optional)
+        // Choose your custom class names
+        classes: {
+            actionbar: 'pell-actionbar',
+            button: 'pell-button',
+            content: 'pell-content',
+            selected: 'pell-button-selected'
+        }
+    })
+
     const btn = document.getElementById("printButton");
 
     console.log(btn);
 
     btn.onclick = async () => {
-        let output = await editor.save();
-        console.log(JSON.stringify(output));
-        await api("/api/print", output);
+        let payload = { text: output };
+        console.log(payload);
+        await api("/api/print", payload);
     };
 
     function api(url, data) {
