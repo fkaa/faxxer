@@ -35,7 +35,7 @@ impl Database {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub(crate) struct User {
     pub(crate) user_id: u64,
     pub(crate) username: String,

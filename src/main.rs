@@ -15,7 +15,7 @@ use rand::{Rng, distr::Alphanumeric};
 use regex::RegexBuilder;
 use serde::{Deserialize, Serialize};
 use serenity::{
-    all::{CurrentUser, Http},
+    all::{CreateMessage, CurrentUser, Http, UserId},
     futures,
 };
 use tiny_http::{Header, Request, Response, ResponseBox};
@@ -151,7 +151,19 @@ fn accept_request_api(req: &mut Request, app: &App) -> ResponseBox {
 
     user.authorize_secret = None;
 
-    app.db.update_user(user);
+    app.db.update_user(user.clone());
+
+    /*let target_user = UserId::new(user.user_id);
+    if let Err(e) = app.rt.block_on(
+        target_user.direct_message(
+            &app.discord_bot_client,
+            CreateMessage::new()
+                .tts(true)
+                .content("Komsi komsi!! Nu kan du skriva kvitton [här](https://fax.fnk.ee)"),
+        ),
+    ) {
+        log::error!("Failed to send discord DM to {}: {e:?}", user.username);
+    }*/
 
     return Response::empty(30)
         .with_status_code(303)
@@ -253,7 +265,7 @@ fn send_auth_request_print_qr(
     printer.writeln(")")?;
     printer.feed()?;
 
-    printer.writeln("Scan the code to authorize printer access");
+    printer.writeln("Scan the code to authorize printer access")?;
 
     printer.feed()?;
 
