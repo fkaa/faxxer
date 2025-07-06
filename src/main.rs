@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::{env, fs, time::Duration};
 
 use cookie::{Cookie, CookieBuilder};
 use dotenv::dotenv;
@@ -244,7 +244,8 @@ fn discord_auth_api(req: &mut Request, printer: &mut Printer<UsbDriver>, app: &A
 
     let cookie = CookieBuilder::new("auth", jwt)
         .http_only(true)
-        .same_site(cookie::SameSite::Strict)
+        .max_age(time::Duration::days(365))
+        .same_site(cookie::SameSite::Lax)
         .build();
 
     return Response::empty(303)
